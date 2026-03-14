@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#07070f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Market Compass">
+  <title>Market Compass</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;900&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #07070f;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .app { max-width: 480px; margin: 0 auto; padding-bottom: 32px; }
+
+    /* Header */
+    .header { text-align: center; margin-bottom: 20px; padding-top: 12px; }
+    .header-sub { font-size: 10px; letter-spacing: 4px; color: #333366; text-transform: uppercase; margin-bottom: 4px; }
+    .header-title { font-size: 22px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; }
+    .header-time { font-size: 10px; color: #444466; margin-top: 4px; }
+
+    /* Scan All Button */
+    .btn-scan-all {
+      width: 100%; padding: 14px;
+      background: linear-gradient(90deg, #0033aa, #0055ff);
+      border: none; border-radius: 10px;
+      color: #fff; font-weight: 700; font-size: 13px;
+      letter-spacing: 3px; cursor: pointer;
+      margin-bottom: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      box-shadow: 0 0 30px #0044ff44;
+    }
+    .btn-scan-all:disabled {
+      background: linear-gradient(90deg, #111122, #1a1a33);
+      box-shadow: none; cursor: wait;
+    }
+
+    /* Card */
+    .card {
+      background: linear-gradient(135deg, #0d0d1a 0%, #111122 100%);
+      border: 1px solid #2a2a3a;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      transition: border-color 0.4s, box-shadow 0.4s;
+    }
+    .card.long  { border-color: #00ff88; box-shadow: 0 0 20px #00ff8822; }
+    .card.short { border-color: #ff4455; box-shadow: 0 0 20px #ff445522; }
+    .card.neutral { border-color: #ffcc00; box-shadow: 0 0 20px #ffcc0022; }
+
+    .card-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 12px;
+    }
+    .card-title { font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+
+    .btn-scan {
+      background: none; border: 1px solid #2a2a3a; border-radius: 6px;
+      color: #666688; font-size: 10px; padding: 3px 10px;
+      cursor: pointer; font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 1px; transition: all 0.2s;
+    }
+    .btn-scan:hover { border-color: #4444aa; color: #aaaaff; }
+
+    /* Instrument rows */
+    .instrument-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 5px 0; border-bottom: 1px solid #1a1a2e;
+      font-size: 11px;
+    }
+    .instrument-row:last-child { border-bottom: none; }
+    .inst-name { color: #8888aa; }
+    .inst-change { font-weight: 700; }
+    .inst-change.up   { color: #00cc66; }
+    .inst-change.down { color: #ff4455; }
+    .inst-change.flat { color: #ffcc00; }
+
+    /* Signal Box */
+    .signal-box {
+      background: #0a0a15;
+      border: 1px solid #1a1a2e;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 12px;
+      min-height: 64px;
+      transition: border-color 0.4s;
+    }
+    .signal-box.long   { border-color: #00ff8833; }
+    .signal-box.short  { border-color: #ff445533; }
+    .signal-box.neutral{ border-color: #ffcc0033; }
+
+    .signal-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .signal-arrow { font-size: 28px; line-height: 1; }
+    .signal-arrow.long    { color: #00ff88; }
+    .signal-arrow.short   { color: #ff4455; }
+    .signal-arrow.neutral { color: #ffcc00; }
+    .signal-label { font-weight: 700; font-size: 13px; letter-spacing: 2px; }
+    .signal-label.long    { color: #00ff88; }
+    .signal-label.short   { color: #ff4455; }
+    .signal-label.neutral { color: #ffcc00; }
+
+    .strength-dots { display: flex; gap: 3px; margin-top: 3px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: #2a2a3a; transition: background 0.3s; }
+    .dot.active { background: #00ff88; }
+
+    .signal-reason { color: #aaaacc; font-size: 11px; line-height: 1.6; }
+    .signal-loading { color: #4444aa; font-size: 11px; letter-spacing: 2px; }
+    .signal-empty { color: #333355; font-size: 11px; }
+
+    /* Footer */
+    .footer { text-align: center; color: #1a1a33; font-size: 9px; margin-top: 8px; letter-spacing: 1px; }
+
+    /* PWA install hint */
+    .install-hint {
+      background: #0d0d1a; border: 1px solid #1a1a33;
+      border-radius: 8px; padding: 10px 14px;
+      font-size: 10px; color: #555577;
+      text-align: center; margin-bottom: 16px;
+      display: none;
+    }
+    .install-hint.show { display: block; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="header-sub">CFD Signal Scanner</div>
+    <div class="header-title">Market Compass</div>
+    <div class="header-time" id="lastUpdate">Bereit – Scan starten</div>
+  </div>
+
+  <div class="install-hint" id="installHint">
+    💡 Tipp: Teilen → „Zum Home-Bildschirm" für App-Icon
+  </div>
+
+  <button class="btn-scan-all" id="btnAll" onclick="scanAll()">▶ ALLE MÄRKTE SCANNEN</button>
+
+  <!-- Nasdaq -->
+  <div class="card" id="card-nasdaq">
+    <div class="card-header">
+      <span class="card-title">📈 Nasdaq Vorlauf</span>
+      <button class="btn-scan" onclick="scanMarket('nasdaq')">SCAN</button>
+    </div>
+    <div id="instr-nasdaq"></div>
+    <div class="signal-box" id="signal-nasdaq">
+      <div class="signal-empty">Drücke SCAN für Signal</div>
+    </div>
+  </div>
+
+  <!-- Öl -->
+  <div class="card" id="card-oil">
+    <div class="card-header">
+      <span class="card-title">🛢 Öl Vorlauf</span>
+      <button class="btn-scan" onclick="scanMarket('oil')">SCAN</button>
+    </div>
+    <div id="instr-oil"></div>
+    <div class="signal-box" id="signal-oil">
+      <div class="signal-empty">Drücke SCAN für Signal</div>
+    </div>
+  </div>
+
+  <!-- Gold -->
+  <div class="card" id="card-gold">
+    <div class="card-header">
+      <span class="card-title">🥇 Gold Vorlauf</span>
+      <button class="btn-scan" onclick="scanMarket('gold')">SCAN</button>
+    </div>
+    <div id="instr-gold"></div>
+    <div class="signal-box" id="signal-gold">
+      <div class="signal-empty">Drücke SCAN für Signal</div>
+    </div>
+  </div>
+
+  <div class="footer">KEIN ANLAGEHINWEIS • NUR ZU LERNZWECKEN</div>
+</div>
+
+<script>
+// ── Marktdaten (Fallback wenn API nicht verfügbar) ──────────────────────────
+const MOCK = {
+  nasdaq: [
+    { id:"US100",  name:"US Tech 100",     change:-0.24, main:true  },
+    { id:"US500",  name:"S&P 500",         change:-0.17, main:false },
+    { id:"T10Y",   name:"Treasury 10Y ETF",change:-0.14, main:false },
+    { id:"USD",    name:"USD Basket",      change:+0.79, main:false },
+    { id:"NVDA",   name:"NVIDIA",          change:-1.69, main:false },
+    { id:"AMD",    name:"AMD",             change:-2.55, main:false },
+  ],
+  oil: [
+    { id:"OIL",    name:"US Rohöl",        change:+0.57, main:true  },
+    { id:"USD",    name:"USD Basket",      change:+0.79, main:false },
+    { id:"T10Y",   name:"Treasury 10Y ETF",change:-0.14, main:false },
+    { id:"CVX",    name:"Chevron",         change:-0.08, main:false },
+  ],
+  gold: [
+    { id:"GOLD",   name:"Gold Spot",       change:+0.44, main:true  },
+    { id:"SILVER", name:"Silber",          change:+0.61, main:false },
+    { id:"USD",    name:"USD Basket",      change:+0.79, main:false },
+    { id:"T10Y",   name:"Treasury 10Y ETF",change:-0.14, main:false },
+  ],
+};
+
+let marketData = JSON.parse(JSON.stringify(MOCK));
+let isDemo = true;
+
+// ── Marktdaten laden ────────────────────────────────────────────────────────
+async function loadMarketData() {
+  try {
+    const res = await fetch("/api/markets");
+    if (!res.ok) throw new Error("API nicht erreichbar");
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    marketData = data;
+    isDemo = false;
+  } catch (e) {
+    console.warn("Live-Daten nicht verfügbar, nutze Demo-Daten:", e.message);
+    marketData = JSON.parse(JSON.stringify(MOCK));
+    isDemo = true;
+  }
+  renderAllInstruments();
+}
+
+// ── Instrumente rendern ─────────────────────────────────────────────────────
+function renderAllInstruments() {
+  ["nasdaq","oil","gold"].forEach(renderInstruments);
+  document.getElementById("lastUpdate").textContent =
+    `Stand: ${new Date().toLocaleTimeString("de-DE")}${isDemo ? " · DEMO" : " · LIVE"}`;
+}
+
+function renderInstruments(market) {
+  const el = document.getElementById("instr-" + market);
+  if (!el || !marketData[market]) return;
+  el.innerHTML = marketData[market].map(inst => {
+    const c = inst.change ?? 0;
+    const cls = c > 0.05 ? "up" : c < -0.05 ? "down" : "flat";
+    const sign = c > 0 ? "+" : "";
+    return `<div class="instrument-row">
+      <span class="inst-name">${inst.name}</span>
+      <span class="inst-change ${cls}">${sign}${c.toFixed(2)}%</span>
+    </div>`;
+  }).join("");
+}
+
+// ── KI Signal ──────────────────────────────────────────────────────────────
+async function getAISignal(market) {
+  const instruments = marketData[market];
+  const marketNames = { nasdaq:"Nasdaq / US Tech 100", oil:"US Rohöl (WTI)", gold:"Gold Spot" };
+
+  const summary = instruments.map(i => {
+    const c = i.change ?? 0;
+    return `${i.name}: ${c > 0 ? "+" : ""}${c.toFixed(2)}% (${c > 0.05 ? "steigt" : c < -0.05 ? "fällt" : "seitwärts"})`;
+  }).join("\n");
+
+  const prompt = `Du bist ein erfahrener CFD-Intraday-Trader. Analysiere folgende Korrelationsdaten für eine kurzfristige Richtungsprognose (Ziel: 50-150 Punkte, nächste Stunde).
+
+Hauptmarkt: ${marketNames[market]}
+Aktuelle Indikatoren:
+${summary}
+
+Bekannte Regeln:
+- USD Basket ↑ → Nasdaq ↓, Gold ↓, Öl ↓
+- Treasury 10Y ↑ → Nasdaq ↓, Gold ↓
+- NVIDIA/AMD: wenn stärker als Nasdaq → Move hat Substanz
+- Silber läuft Gold voraus
+- Chevron bestätigt Öl-Richtung
+
+Antworte NUR als JSON ohne Markdown:
+{"signal":"LONG oder SHORT oder NEUTRAL","strength":1-5,"reason":"max 2 kurze Sätze auf Deutsch, konkret"}`;
+
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+
+  const data = await res.json();
+  const text = data.content.map(b => b.text || "").join("");
+  const clean = text.replace(/```json|```/g, "").trim();
+  return JSON.parse(clean);
+}
+
+// ── Signal anzeigen ─────────────────────────────────────────────────────────
+function showLoading(market) {
+  const box = document.getElementById("signal-" + market);
+  box.className = "signal-box";
+  box.innerHTML = `<div class="signal-loading">ANALYSIERE...</div>`;
+}
+
+function showSignal(market, sig) {
+  const card = document.getElementById("card-" + market);
+  const box  = document.getElementById("signal-" + market);
+  const cls  = sig.signal === "LONG" ? "long" : sig.signal === "SHORT" ? "short" : "neutral";
+  const arrow = sig.signal === "LONG" ? "↑" : sig.signal === "SHORT" ? "↓" : "→";
+
+  card.className = "card " + cls;
+  box.className  = "signal-box " + cls;
+
+  const dots = [1,2,3,4,5].map(i =>
+    `<div class="dot${i <= sig.strength ? " active" : ""}"></div>`
+  ).join("");
+
+  box.innerHTML = `
+    <div class="signal-row">
+      <div class="signal-arrow ${cls}">${arrow}</div>
+      <div>
+        <div class="signal-label ${cls}">${sig.signal}</div>
+        <div class="strength-dots">${dots}</div>
+      </div>
+    </div>
+    <div class="signal-reason">${sig.reason}</div>`;
+}
+
+function showError(market, msg) {
+  const box = document.getElementById("signal-" + market);
+  box.className = "signal-box";
+  box.innerHTML = `<div class="signal-empty">⚠ ${msg}</div>`;
+}
+
+// ── Scan Funktionen ─────────────────────────────────────────────────────────
+async function scanMarket(market) {
+  showLoading(market);
+  try {
+    await loadMarketData();
+    const sig = await getAISignal(market);
+    showSignal(market, sig);
+  } catch(e) {
+    showError(market, "Analyse fehlgeschlagen");
+    console.error(e);
+  }
+}
+
+async function scanAll() {
+  const btn = document.getElementById("btnAll");
+  btn.disabled = true;
+  btn.textContent = "⟳  SCANNE ALLE MÄRKTE...";
+  await loadMarketData();
+  await Promise.all(["nasdaq","oil","gold"].map(async m => {
+    showLoading(m);
+    try {
+      const sig = await getAISignal(m);
+      showSignal(m, sig);
+    } catch(e) {
+      showError(m, "Analyse fehlgeschlagen");
+    }
+  }));
+  btn.disabled = false;
+  btn.textContent = "▶ ALLE MÄRKTE SCANNEN";
+}
+
+// ── PWA Install Hint (iOS) ──────────────────────────────────────────────────
+const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+const isStandalone = window.navigator.standalone;
+if (isIOS && !isStandalone) {
+  document.getElementById("installHint").classList.add("show");
+}
+
+// ── Init ────────────────────────────────────────────────────────────────────
+loadMarketData();
+</script>
+</body>
+</html>
