@@ -1,0 +1,18 @@
+{
+  "name": "Market Compass",
+  "short_name": "Compass",
+  "description": "CFD Signal Scanner – Nasdaq, Öl, Gold",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07070f",
+  "theme_color": "#07070f",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%2307070f'/><text y='320' x='80' font-size='320' font-family='serif'>🧭</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
