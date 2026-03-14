@@ -256,44 +256,13 @@ function renderInstruments(market) {
 
 // ── KI Signal ──────────────────────────────────────────────────────────────
 async function getAISignal(market) {
-  const instruments = marketData[market];
-  const marketNames = { nasdaq:"Nasdaq / US Tech 100", oil:"US Rohöl (WTI)", gold:"Gold Spot" };
-
-  const summary = instruments.map(i => {
-    const c = i.change ?? 0;
-    return `${i.name}: ${c > 0 ? "+" : ""}${c.toFixed(2)}% (${c > 0.05 ? "steigt" : c < -0.05 ? "fällt" : "seitwärts"})`;
-  }).join("\n");
-
-  const prompt = `Du bist ein erfahrener CFD-Intraday-Trader. Analysiere folgende Korrelationsdaten für eine kurzfristige Richtungsprognose (Ziel: 50-150 Punkte, nächste Stunde).
-
-Hauptmarkt: ${marketNames[market]}
-Aktuelle Indikatoren:
-${summary}
-
-Bekannte Regeln:
-- USD Basket ↑ → Nasdaq ↓, Gold ↓, Öl ↓
-- Treasury 10Y ↑ → Nasdaq ↓, Gold ↓
-- NVIDIA/AMD: wenn stärker als Nasdaq → Move hat Substanz
-- Silber läuft Gold voraus
-- Chevron bestätigt Öl-Richtung
-
-Antworte NUR als JSON ohne Markdown:
-{"signal":"LONG oder SHORT oder NEUTRAL","strength":1-5,"reason":"max 2 kurze Sätze auf Deutsch, konkret"}`;
-
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch("/api/signal", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1000,
-      messages: [{ role: "user", content: prompt }],
-    }),
+    body: JSON.stringify({ market, instruments: marketData[market] }),
   });
-
-  const data = await res.json();
-  const text = data.content.map(b => b.text || "").join("");
-  const clean = text.replace(/```json|```/g, "").trim();
-  return JSON.parse(clean);
+  if (!res.ok) throw new Error("Signal API Fehler");
+  return await res.json();
 }
 
 // ── Signal anzeigen ─────────────────────────────────────────────────────────
