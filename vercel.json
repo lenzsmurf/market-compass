@@ -1,3 +1,8 @@
 {
-  "outputDirectory": "public"
+  "outputDirectory": "public",
+  "functions": {
+    "api/markets.js": {
+      "runtime": "nodejs20.x"
+    }
+  }
 }
