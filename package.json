@@ -1,6 +1,4 @@
 {
   "name": "market-compass",
-  "version": "1.0.0",
-  "description": "CFD Signal Scanner – Nasdaq, Öl, Gold",
-  "engines": { "node": "18.x" }
+  "version": "1.0.0"
 }
