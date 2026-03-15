@@ -1,33 +1,4 @@
-module.exports.config = { api: { bodyParser: true } };
 const https = require("https");
-
-function anthropicRequest(prompt) {
-  return new Promise((resolve, reject) => {
-    const payload = JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 300,
-      messages: [{ role: "user", content: prompt }],
-    });
-    const req = https.request({
-      hostname: "api.anthropic.com",
-      path: "/v1/messages",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "Content-Length": Buffer.byteLength(payload),
-      },
-    }, (res) => {
-      let data = "";
-      res.on("data", c => data += c);
-      res.on("end", () => resolve(JSON.parse(data)));
-    });
-    req.on("error", reject);
-    req.write(payload);
-    req.end();
-  });
-}
 
 module.exports = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -35,37 +6,57 @@ module.exports = async (req, res) => {
   if (req.method === "OPTIONS") return res.status(200).end();
 
   try {
-   const { market, instruments } = req.body;
+    const market = req.body?.market;
+    const instruments = req.body?.instruments;
 
-    const marketNames = { nasdaq: "Nasdaq / US Tech 100", oil: "US Rohöl (WTI)", gold: "Gold Spot" };
-    const summary = instruments.map(i => {
-      const c = i.change ?? 0;
-      return `${i.name}: ${c > 0 ? "+" : ""}${c.toFixed(2)}% (${c > 0.05 ? "steigt" : c < -0.05 ? "fällt" : "seitwärts"})`;
-    }).join("\n");
+    if (!market || !instruments) {
+      return res.status(400).json({ error: "Kein market/instruments", body: req.body });
+    }
 
-    const prompt = `Du bist ein erfahrener CFD-Intraday-Trader. Analysiere folgende Korrelationsdaten für eine kurzfristige Richtungsprognose (Ziel: 50-150 Punkte, nächste Stunde).
+    const marketNames = { nasdaq: "Nasdaq / US Tech 100", oil: "US Rohöl", gold: "Gold Spot" };
+    const summary = instruments.map(i => `${i.name}: ${(i.change??0).toFixed(2)}%`).join(", ");
+    const prompt = `CFD-Trader: Analysiere für ${marketNames[market]||market}: ${summary}. Nur JSON: {"signal":"LONG oder SHORT oder NEUTRAL","strength":3,"reason":"Ein Satz Deutsch."}`;
 
-Hauptmarkt: ${marketNames[market]}
-Aktuelle Indikatoren:
-${summary}
+    const payload = JSON.stringify({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 200,
+      messages: [{ role: "user", content: prompt }],
+    });
 
-Bekannte Regeln:
-- USD Basket ↑ → Nasdaq ↓, Gold ↓, Öl ↓
-- Treasury 10Y ↑ → Nasdaq ↓, Gold ↓
-- NVIDIA/AMD: wenn stärker als Nasdaq → Move hat Substanz
-- Silber läuft Gold voraus
-- Chevron bestätigt Öl-Richtung
+    const apiRes = await new Promise((resolve, reject) => {
+      const r = https.request({
+        hostname: "api.anthropic.com",
+        path: "/v1/messages",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": process.env.ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+          "Content-Length": Buffer.byteLength(payload),
+        },
+      }, (resp) => {
+        let d = "";
+        resp.on("data", c => d += c);
+        resp.on("end", () => resolve({ status: resp.statusCode, body: d }));
+      });
+      r.on("error", reject);
+      r.write(payload);
+      r.end();
+    });
 
-Antworte NUR als JSON ohne Markdown:
-{"signal":"LONG oder SHORT oder NEUTRAL","strength":1-5,"reason":"max 2 kurze Sätze auf Deutsch, konkret"}`;
+    console.log("Anthropic status:", apiRes.status, "body:", apiRes.body.substring(0, 200));
 
-    const data = await anthropicRequest(prompt);
+    if (apiRes.status !== 200) {
+      return res.status(500).json({ error: "Anthropic Fehler", status: apiRes.status, detail: apiRes.body });
+    }
+
+    const data = JSON.parse(apiRes.body);
     const text = data.content.map(b => b.text || "").join("");
     const clean = text.replace(/```json|```/g, "").trim();
-    const result = JSON.parse(clean);
+    res.status(200).json(JSON.parse(clean));
 
-    res.status(200).json(result);
   } catch (e) {
+    console.error("Signal error:", e.message);
     res.status(500).json({ error: e.message });
   }
 };
