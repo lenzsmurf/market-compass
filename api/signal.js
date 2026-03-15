@@ -1,3 +1,4 @@
+module.exports.config = { api: { bodyParser: true } };
 const https = require("https");
 
 function anthropicRequest(prompt) {
@@ -34,13 +35,7 @@ module.exports = async (req, res) => {
   if (req.method === "OPTIONS") return res.status(200).end();
 
   try {
-    const { market, instruments } = JSON.parse(
-      await new Promise((resolve) => {
-        let body = "";
-        req.on("data", c => body += c);
-        req.on("end", () => resolve(body));
-      })
-    );
+   const { market, instruments } = req.body;
 
     const marketNames = { nasdaq: "Nasdaq / US Tech 100", oil: "US Rohöl (WTI)", gold: "Gold Spot" };
     const summary = instruments.map(i => {
