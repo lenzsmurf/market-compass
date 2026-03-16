@@ -36,7 +36,7 @@ async function getEIA() {
     const data = await fetchUrl(
       `https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key=${key}&frequency=weekly&data[0]=value&facets[series][]=WCRSTUS1&sort[0][column]=period&sort[0][direction]=desc&length=2`
     );
-    if (!data?.response?.data?.length < 2) return null;
+    if (!data?.response?.data || data.response.data.length < 2) return null;
     const latest = data.response.data[0];
     const prev   = data.response.data[1];
     const change = latest.value - prev.value;
