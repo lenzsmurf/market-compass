@@ -67,7 +67,7 @@ async function login() {
     identifier: process.env.IG_USERNAME,
     password: process.env.IG_PASSWORD,
   });
-  if (res.status !== 200) throw new Error("IG Login fehlgeschlagen");
+  if (res.status !== 200) throw new Error("IG Login fehlgeschlagen: " + JSON.stringify(res.body));
   return { cst: res.headers["cst"], token: res.headers["x-security-token"] };
 }
 
