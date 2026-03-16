@@ -11,62 +11,34 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;900&display=swap');
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: #07070f;
-      color: #fff;
-      font-family: 'JetBrains Mono', monospace;
-      min-height: 100vh;
-      padding: 16px;
-    }
-
+    body { background: #07070f; color: #fff; font-family: 'JetBrains Mono', monospace; min-height: 100vh; padding: 16px; }
     .app { max-width: 480px; margin: 0 auto; padding-bottom: 32px; }
-
-    /* Header */
     .header { text-align: center; margin-bottom: 20px; padding-top: 12px; }
     .header-sub { font-size: 10px; letter-spacing: 4px; color: #333366; text-transform: uppercase; margin-bottom: 4px; }
     .header-title { font-size: 22px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; }
     .header-time { font-size: 10px; color: #444466; margin-top: 4px; }
-
-    /* Scan All Button */
     .btn-scan-all {
       width: 100%; padding: 14px;
       background: linear-gradient(90deg, #0033aa, #0055ff);
       border: none; border-radius: 10px;
       color: #fff; font-weight: 700; font-size: 13px;
       letter-spacing: 3px; cursor: pointer;
-      margin-bottom: 20px;
-      font-family: 'JetBrains Mono', monospace;
-      text-transform: uppercase;
-      transition: all 0.3s;
+      margin-bottom: 20px; font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase; transition: all 0.3s;
       box-shadow: 0 0 30px #0044ff44;
     }
-    .btn-scan-all:disabled {
-      background: linear-gradient(90deg, #111122, #1a1a33);
-      box-shadow: none; cursor: wait;
-    }
-
-    /* Card */
+    .btn-scan-all:disabled { background: linear-gradient(90deg, #111122, #1a1a33); box-shadow: none; cursor: wait; }
     .card {
       background: linear-gradient(135deg, #0d0d1a 0%, #111122 100%);
-      border: 1px solid #2a2a3a;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-      transition: border-color 0.4s, box-shadow 0.4s;
+      border: 1px solid #2a2a3a; border-radius: 12px; padding: 16px;
+      margin-bottom: 16px; transition: border-color 0.4s, box-shadow 0.4s;
     }
     .card.long  { border-color: #00ff88; box-shadow: 0 0 20px #00ff8822; }
     .card.short { border-color: #ff4455; box-shadow: 0 0 20px #ff445522; }
     .card.neutral { border-color: #ffcc00; box-shadow: 0 0 20px #ffcc0022; }
-
-    .card-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 12px;
-    }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .card-title { font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
-
     .btn-scan {
       background: none; border: 1px solid #2a2a3a; border-radius: 6px;
       color: #666688; font-size: 10px; padding: 3px 10px;
@@ -74,12 +46,9 @@
       letter-spacing: 1px; transition: all 0.2s;
     }
     .btn-scan:hover { border-color: #4444aa; color: #aaaaff; }
-
-    /* Instrument rows */
     .instrument-row {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 5px 0; border-bottom: 1px solid #1a1a2e;
-      font-size: 11px;
+      padding: 5px 0; border-bottom: 1px solid #1a1a2e; font-size: 11px;
     }
     .instrument-row:last-child { border-bottom: none; }
     .inst-name { color: #8888aa; }
@@ -88,20 +57,55 @@
     .inst-change.down { color: #ff4455; }
     .inst-change.flat { color: #ffcc00; }
 
-    /* Signal Box */
-    .signal-box {
-      background: #0a0a15;
+    /* Events Panel */
+    .events-panel {
+      margin-top: 10px;
+      background: #08080f;
       border: 1px solid #1a1a2e;
       border-radius: 8px;
-      padding: 12px;
-      margin-top: 12px;
-      min-height: 64px;
-      transition: border-color 0.4s;
+      padding: 8px 10px;
+    }
+    .events-title {
+      font-size: 9px; letter-spacing: 2px; color: #333355;
+      text-transform: uppercase; margin-bottom: 6px;
+    }
+    .event-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 3px 0; font-size: 10px; border-bottom: 1px solid #0f0f1a;
+    }
+    .event-row:last-child { border-bottom: none; }
+    .event-name { color: #555577; }
+    .event-val { font-weight: 700; }
+    .event-val.bullish { color: #00cc66; }
+    .event-val.bearish { color: #ff4455; }
+    .event-val.neutral { color: #ffcc00; }
+    .event-val.unknown { color: #333355; }
+
+    /* Confluence Bar */
+    .confluence-bar {
+      margin-top: 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .confluence-label { font-size: 9px; color: #333355; letter-spacing: 1px; text-transform: uppercase; min-width: 80px; }
+    .confluence-track { flex: 1; height: 4px; background: #1a1a2e; border-radius: 2px; overflow: hidden; }
+    .confluence-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
+    .confluence-fill.bullish { background: #00cc66; }
+    .confluence-fill.bearish { background: #ff4455; }
+    .confluence-fill.neutral { background: #ffcc00; }
+    .confluence-score { font-size: 9px; font-weight: 700; min-width: 30px; text-align: right; }
+    .confluence-score.bullish { color: #00cc66; }
+    .confluence-score.bearish { color: #ff4455; }
+    .confluence-score.neutral { color: #ffcc00; }
+
+    /* Signal Box */
+    .signal-box {
+      background: #0a0a15; border: 1px solid #1a1a2e;
+      border-radius: 8px; padding: 12px; margin-top: 10px;
+      min-height: 64px; transition: border-color 0.4s;
     }
     .signal-box.long   { border-color: #00ff8833; }
     .signal-box.short  { border-color: #ff445533; }
     .signal-box.neutral{ border-color: #ffcc0033; }
-
     .signal-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
     .signal-arrow { font-size: 28px; line-height: 1; }
     .signal-arrow.long    { color: #00ff88; }
@@ -111,42 +115,29 @@
     .signal-label.long    { color: #00ff88; }
     .signal-label.short   { color: #ff4455; }
     .signal-label.neutral { color: #ffcc00; }
-
     .strength-dots { display: flex; gap: 3px; margin-top: 3px; }
     .dot { width: 6px; height: 6px; border-radius: 50%; background: #2a2a3a; transition: background 0.3s; }
     .dot.active { background: #00ff88; }
-
     .signal-reason { color: #aaaacc; font-size: 11px; line-height: 1.6; }
     .signal-loading { color: #4444aa; font-size: 11px; letter-spacing: 2px; }
     .signal-empty { color: #333355; font-size: 11px; }
-
-    /* Footer */
     .footer { text-align: center; color: #1a1a33; font-size: 9px; margin-top: 8px; letter-spacing: 1px; }
-
-    /* PWA install hint */
     .install-hint {
-      background: #0d0d1a; border: 1px solid #1a1a33;
-      border-radius: 8px; padding: 10px 14px;
-      font-size: 10px; color: #555577;
-      text-align: center; margin-bottom: 16px;
-      display: none;
+      background: #0d0d1a; border: 1px solid #1a1a33; border-radius: 8px;
+      padding: 10px 14px; font-size: 10px; color: #555577;
+      text-align: center; margin-bottom: 16px; display: none;
     }
     .install-hint.show { display: block; }
   </style>
 </head>
 <body>
 <div class="app">
-
   <div class="header">
     <div class="header-sub">CFD Signal Scanner</div>
     <div class="header-title">Market Compass</div>
     <div class="header-time" id="lastUpdate">Bereit – Scan starten</div>
   </div>
-
-  <div class="install-hint" id="installHint">
-    💡 Tipp: Teilen → „Zum Home-Bildschirm" für App-Icon
-  </div>
-
+  <div class="install-hint" id="installHint">💡 Tipp: Teilen → „Zum Home-Bildschirm" für App-Icon</div>
   <button class="btn-scan-all" id="btnAll" onclick="scanAll()">▶ ALLE MÄRKTE SCANNEN</button>
 
   <!-- Nasdaq -->
@@ -156,9 +147,8 @@
       <button class="btn-scan" onclick="scanMarket('nasdaq')">SCAN</button>
     </div>
     <div id="instr-nasdaq"></div>
-    <div class="signal-box" id="signal-nasdaq">
-      <div class="signal-empty">Drücke SCAN für Signal</div>
-    </div>
+    <div id="events-nasdaq"></div>
+    <div class="signal-box" id="signal-nasdaq"><div class="signal-empty">Drücke SCAN für Signal</div></div>
   </div>
 
   <!-- Öl -->
@@ -168,9 +158,8 @@
       <button class="btn-scan" onclick="scanMarket('oil')">SCAN</button>
     </div>
     <div id="instr-oil"></div>
-    <div class="signal-box" id="signal-oil">
-      <div class="signal-empty">Drücke SCAN für Signal</div>
-    </div>
+    <div id="events-oil"></div>
+    <div class="signal-box" id="signal-oil"><div class="signal-empty">Drücke SCAN für Signal</div></div>
   </div>
 
   <!-- Gold -->
@@ -180,16 +169,14 @@
       <button class="btn-scan" onclick="scanMarket('gold')">SCAN</button>
     </div>
     <div id="instr-gold"></div>
-    <div class="signal-box" id="signal-gold">
-      <div class="signal-empty">Drücke SCAN für Signal</div>
-    </div>
+    <div id="events-gold"></div>
+    <div class="signal-box" id="signal-gold"><div class="signal-empty">Drücke SCAN für Signal</div></div>
   </div>
 
   <div class="footer">KEIN ANLAGEHINWEIS • NUR ZU LERNZWECKEN</div>
 </div>
 
 <script>
-// ── Marktdaten (Fallback wenn API nicht verfügbar) ──────────────────────────
 const MOCK = {
   nasdaq: [
     { id:"US100",  name:"US Tech 100",     change:-0.24, main:true  },
@@ -214,9 +201,9 @@ const MOCK = {
 };
 
 let marketData = JSON.parse(JSON.stringify(MOCK));
+let eventsData = null;
 let isDemo = true;
 
-// ── Marktdaten laden ────────────────────────────────────────────────────────
 async function loadMarketData() {
   try {
     const res = await fetch("/api/markets");
@@ -226,14 +213,25 @@ async function loadMarketData() {
     marketData = data;
     isDemo = false;
   } catch (e) {
-    console.warn("Live-Daten nicht verfügbar, nutze Demo-Daten:", e.message);
+    console.warn("Live-Daten nicht verfügbar:", e.message);
     marketData = JSON.parse(JSON.stringify(MOCK));
     isDemo = true;
   }
   renderAllInstruments();
 }
 
-// ── Instrumente rendern ─────────────────────────────────────────────────────
+async function loadEvents(market) {
+  try {
+    const res = await fetch("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ market, instruments: marketData[market] }),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
+
 function renderAllInstruments() {
   ["nasdaq","oil","gold"].forEach(renderInstruments);
   document.getElementById("lastUpdate").textContent =
@@ -254,18 +252,90 @@ function renderInstruments(market) {
   }).join("");
 }
 
-// ── KI Signal ──────────────────────────────────────────────────────────────
-async function getAISignal(market) {
+function renderEvents(market, evData) {
+  const el = document.getElementById("events-" + market);
+  if (!el || !evData) { if(el) el.innerHTML = ""; return; }
+
+  const { events, confluence } = evData;
+  let rows = "";
+
+  if (events.fearGreed) {
+    const cls = events.fearGreed.signal;
+    rows += `<div class="event-row">
+      <span class="event-name">Fear & Greed</span>
+      <span class="event-val ${cls}">${events.fearGreed.value} – ${events.fearGreed.label}</span>
+    </div>`;
+  }
+
+  if ((market === "nasdaq") && events.moo) {
+    if (events.moo.nqLabel) {
+      rows += `<div class="event-row">
+        <span class="event-name">MOO Nasdaq</span>
+        <span class="event-val ${events.moo.nqSignal}">${events.moo.nqLabel}</span>
+      </div>`;
+    }
+    if (events.moo.spLabel) {
+      rows += `<div class="event-row">
+        <span class="event-name">MOO S&P 500</span>
+        <span class="event-val ${events.moo.spSignal}">${events.moo.spLabel}</span>
+      </div>`;
+    }
+    if (!events.moo.nqLabel && !events.moo.spLabel) {
+      rows += `<div class="event-row">
+        <span class="event-name">MOO</span>
+        <span class="event-val unknown">Noch nicht verfügbar</span>
+      </div>`;
+    }
+  }
+
+  if (market === "oil" && events.eia) {
+    rows += `<div class="event-row">
+      <span class="event-name">EIA Ölvorräte</span>
+      <span class="event-val ${events.eia.signal}">${events.eia.label}</span>
+    </div>`;
+  }
+
+  if (!rows) { el.innerHTML = ""; return; }
+
+  // Confluence Bar
+  let confluenceHtml = "";
+  if (confluence && confluence.total > 0) {
+    const pct = Math.round((Math.max(confluence.bullish, confluence.bearish) / confluence.total) * 100);
+    const dir = confluence.direction;
+    const score = confluence.bullish > confluence.bearish
+      ? `${confluence.bullish}/${confluence.total} bullish`
+      : `${confluence.bearish}/${confluence.total} bearish`;
+    confluenceHtml = `<div class="confluence-bar">
+      <span class="confluence-label">Confluence</span>
+      <div class="confluence-track">
+        <div class="confluence-fill ${dir}" style="width:${pct}%"></div>
+      </div>
+      <span class="confluence-score ${dir}">${score}</span>
+    </div>`;
+  }
+
+  el.innerHTML = `<div class="events-panel">
+    <div class="events-title">📅 Marktkontext</div>
+    ${rows}
+    ${confluenceHtml}
+  </div>`;
+}
+
+async function getAISignal(market, evData) {
   const res = await fetch("/api/signal", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ market, instruments: marketData[market] }),
+    body: JSON.stringify({
+      market,
+      instruments: marketData[market],
+      events: evData?.events || {},
+      confluence: evData?.confluence || null,
+    }),
   });
   if (!res.ok) throw new Error("Signal API Fehler");
   return await res.json();
 }
 
-// ── Signal anzeigen ─────────────────────────────────────────────────────────
 function showLoading(market) {
   const box = document.getElementById("signal-" + market);
   box.className = "signal-box";
@@ -277,14 +347,11 @@ function showSignal(market, sig) {
   const box  = document.getElementById("signal-" + market);
   const cls  = sig.signal === "LONG" ? "long" : sig.signal === "SHORT" ? "short" : "neutral";
   const arrow = sig.signal === "LONG" ? "↑" : sig.signal === "SHORT" ? "↓" : "→";
-
   card.className = "card " + cls;
   box.className  = "signal-box " + cls;
-
   const dots = [1,2,3,4,5].map(i =>
     `<div class="dot${i <= sig.strength ? " active" : ""}"></div>`
   ).join("");
-
   box.innerHTML = `
     <div class="signal-row">
       <div class="signal-arrow ${cls}">${arrow}</div>
@@ -302,12 +369,13 @@ function showError(market, msg) {
   box.innerHTML = `<div class="signal-empty">⚠ ${msg}</div>`;
 }
 
-// ── Scan Funktionen ─────────────────────────────────────────────────────────
 async function scanMarket(market) {
   showLoading(market);
   try {
     await loadMarketData();
-    const sig = await getAISignal(market);
+    const evData = await loadEvents(market);
+    renderEvents(market, evData);
+    const sig = await getAISignal(market, evData);
     showSignal(market, sig);
   } catch(e) {
     showError(market, "Analyse fehlgeschlagen");
@@ -323,7 +391,9 @@ async function scanAll() {
   await Promise.all(["nasdaq","oil","gold"].map(async m => {
     showLoading(m);
     try {
-      const sig = await getAISignal(m);
+      const evData = await loadEvents(m);
+      renderEvents(m, evData);
+      const sig = await getAISignal(m, evData);
       showSignal(m, sig);
     } catch(e) {
       showError(m, "Analyse fehlgeschlagen");
@@ -333,14 +403,10 @@ async function scanAll() {
   btn.textContent = "▶ ALLE MÄRKTE SCANNEN";
 }
 
-// ── PWA Install Hint (iOS) ──────────────────────────────────────────────────
 const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
 const isStandalone = window.navigator.standalone;
-if (isIOS && !isStandalone) {
-  document.getElementById("installHint").classList.add("show");
-}
+if (isIOS && !isStandalone) document.getElementById("installHint").classList.add("show");
 
-// ── Init ────────────────────────────────────────────────────────────────────
 loadMarketData();
 </script>
 </body>
