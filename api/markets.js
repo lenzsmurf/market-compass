@@ -7,7 +7,7 @@ const EPICS = {
   nasdaq: [
     { id: "US100",  name: "US Tech 100",      epic: "IX.D.NASDAQ.IFD.IP",    main: true  },
     { id: "US500",  name: "S&P 500",           epic: "IX.D.SPTRD.IFD.IP",    main: false },
-    { id: "T10Y",   name: "Treasury 10Y ETF",  epic: "IR.D.BOND100.FWM2.IP", main: false },
+    { id: "T10Y",   name: "Treasury 10Y ETF",  epic: "UD.D.UTENUS.CASH.IP", main: false },
     { id: "USD",    name: "USD Basket",        epic: "CC.D.DX.UME.IP",       main: false },
     { id: "NVDA",   name: "NVIDIA",            epic: "UC.D.NVDA.CASH.IP",    main: false },
     { id: "AMD",    name: "AMD",               epic: "SA.D.AMD.CASH.IP",     main: false },
@@ -15,14 +15,14 @@ const EPICS = {
   oil: [
     { id: "OIL",    name: "US Rohöl",          epic: "CC.D.CL.USS.IP",       main: true  },
     { id: "USD",    name: "USD Basket",        epic: "CC.D.DX.UME.IP",       main: false },
-    { id: "T10Y",   name: "Treasury 10Y ETF",  epic: "IR.D.BOND100.FWM2.IP", main: false },
+    { id: "T10Y",   name: "Treasury 10Y ETF",  epic: "UD.D.UTENUS.CASH.IP", main: false },
     { id: "CVX",    name: "Chevron",           epic: "SB.D.CVX.CASH.IP",     main: false },
   ],
   gold: [
-    { id: "GOLD",   name: "Gold Spot",         epic: "CS.D.CFEGOLD.CEA.IP",  main: true  },
+    { id: "GOLD",   name: "Gold Spot",         epic: "CS.D.CFEGOLD.CAE.IP",  main: true  },
     { id: "SILVER", name: "Silber",            epic: "CS.D.CFDSILVER.CFDSI.IP", main: false },
     { id: "USD",    name: "USD Basket",        epic: "CC.D.DX.UME.IP",       main: false },
-    { id: "T10Y",   name: "Treasury 10Y ETF",  epic: "IR.D.BOND100.FWM2.IP", main: false },
+    { id: "T10Y",   name: "Treasury 10Y ETF",  epic: "UD.D.UTENUS.CASH.IP", main: false },
   ],
 };
 
