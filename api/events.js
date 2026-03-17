@@ -42,7 +42,7 @@ async function getEIA() {
       signal: isActive ? (change < 0 ? "bullish" : "bearish") : "neutral",
       label: isActive
         ? `${change < 0 ? "↓" : "↑"} ${Math.abs(changeMB)}M Barrel vs. Vorwoche`
-        : `${change < 0 ? "↓" : "↑"} ${Math.abs(changeMB)}M (veraltet – nur heute relevant)`
+        : `${change < 0 ? "↓" : "↑"} ${Math.abs(changeMB)}M (vom ${latest.period} – nicht aktuell)`
     };
   } catch { return null; }
 }
