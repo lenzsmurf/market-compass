@@ -1,6 +1,5 @@
 const https = require("https");
 
-// Fetch JSON URL
 function fetchUrl(url) {
   return new Promise((resolve) => {
     const req = https.get(url, {
@@ -18,7 +17,7 @@ function fetchUrl(url) {
   });
 }
 
-// EIA Ölvorräte
+// EIA - nur wenn period == heute
 async function getEIA() {
   try {
     const key = process.env.EIA_API_KEY;
@@ -31,11 +30,19 @@ async function getEIA() {
     const prev   = res.json.response.data[1];
     const change = latest.value - prev.value;
     const changeMB = (change / 1000).toFixed(1);
+
+    // Heute als YYYY-MM-DD
+    const today = new Date().toISOString().slice(0, 10);
+    const isActive = latest.period === today;
+
     return {
       period: latest.period,
       change: changeMB,
-      signal: change < 0 ? "bullish" : "bearish",
-      label: `${change < 0 ? "↓" : "↑"} ${Math.abs(changeMB)}M Barrel vs. Vorwoche`
+      active: isActive,
+      signal: isActive ? (change < 0 ? "bullish" : "bearish") : "neutral",
+      label: isActive
+        ? `${change < 0 ? "↓" : "↑"} ${Math.abs(changeMB)}M Barrel vs. Vorwoche`
+        : `${change < 0 ? "↓" : "↑"} ${Math.abs(changeMB)}M (veraltet – nur heute relevant)`
     };
   } catch { return null; }
 }
@@ -45,33 +52,22 @@ async function getMOO() {
   try {
     const res = await fetchUrl("https://financialjuice.com/News/8178524/MOO-Imbalance.aspx?xy=rss");
     if (!res.ok || !res.text) return null;
-
     const xml = res.text;
-    // RSS items aus XML extrahieren
     const items = xml.match(/<item>([\s\S]*?)<\/item>/g) || [];
-
     for (const item of items) {
       const title = (item.match(/<title>([\s\S]*?)<\/title>/) || [])[1] || "";
       const desc  = (item.match(/<description>([\s\S]*?)<\/description>/) || [])[1] || "";
       const text  = title + " " + desc;
-
-      // Pattern: NQ +1234M oder NQ -567M oder Nasdaq +1234M
       const nqMatch = text.match(/NQ[:\s]+([+-]?\d+[\.,]?\d*)\s*M/i) ||
                       text.match(/Nasdaq[:\s]+([+-]?\d+[\.,]?\d*)\s*M/i);
       const spMatch = text.match(/S&P[:\s]+([+-]?\d+[\.,]?\d*)\s*M/i) ||
-                      text.match(/SP[:\s]+([+-]?\d+[\.,]?\d*)\s*M/i) ||
-                      text.match(/SPY[:\s]+([+-]?\d+[\.,]?\d*)\s*M/i);
-
+                      text.match(/SP[:\s]+([+-]?\d+[\.,]?\d*)\s*M/i);
       if (nqMatch || spMatch) {
         const nq = nqMatch ? parseFloat(nqMatch[1].replace(",", ".")) : null;
         const sp = spMatch ? parseFloat(spMatch[1].replace(",", ".")) : null;
-
-        // Datum aus RSS
         const pubDate = (item.match(/<pubDate>([\s\S]*?)<\/pubDate>/) || [])[1] || "";
-
         return {
-          nq, sp,
-          pubDate,
+          nq, sp, pubDate,
           nqSignal: nq === null ? "unknown" : nq > 200 ? "bullish" : nq < -200 ? "bearish" : "neutral",
           spSignal: sp === null ? "unknown" : sp > 200 ? "bullish" : sp < -200 ? "bearish" : "neutral",
           nqLabel: nq !== null ? `${nq > 0 ? "+" : ""}${nq}M` : null,
@@ -83,48 +79,34 @@ async function getMOO() {
   } catch { return null; }
 }
 
-// Confluence Score
 function calcConfluence(market, instruments, events) {
   let bullish = 0, bearish = 0, total = 0;
-
   for (const inst of instruments) {
     const c = inst.change ?? 0;
     if (Math.abs(c) < 0.05) continue;
     total++;
     if (market === "nasdaq") {
-      if (["US100","US500","NVDA","AMD"].includes(inst.id)) {
-        c > 0 ? bullish++ : bearish++;
-      } else if (inst.id === "USD") {
-        c > 0 ? bearish++ : bullish++;
-      } else if (inst.id === "T10Y") {
-        c > 0 ? bearish++ : bullish++;
-      }
+      if (["US100","US500","NVDA","AMD"].includes(inst.id)) { c > 0 ? bullish++ : bearish++; }
+      else if (inst.id === "USD") { c > 0 ? bearish++ : bullish++; }
+      else if (inst.id === "T10Y") { c > 0 ? bearish++ : bullish++; }
     } else if (market === "oil") {
-      if (inst.id === "OIL" || inst.id === "CVX") {
-        c > 0 ? bullish++ : bearish++;
-      } else if (inst.id === "USD") {
-        c > 0 ? bearish++ : bullish++;
-      }
+      if (inst.id === "OIL" || inst.id === "CVX") { c > 0 ? bullish++ : bearish++; }
+      else if (inst.id === "USD") { c > 0 ? bearish++ : bullish++; }
     } else if (market === "gold") {
-      if (inst.id === "GOLD" || inst.id === "SILVER") {
-        c > 0 ? bullish++ : bearish++;
-      } else if (inst.id === "USD" || inst.id === "T10Y") {
-        c > 0 ? bearish++ : bullish++;
-      }
+      if (inst.id === "GOLD" || inst.id === "SILVER") { c > 0 ? bullish++ : bearish++; }
+      else if (inst.id === "USD" || inst.id === "T10Y") { c > 0 ? bearish++ : bullish++; }
     }
   }
-
+  // MOO nur wenn aktiv
   if (market === "nasdaq" && events.moo?.nqSignal && events.moo.nqSignal !== "unknown") {
-    total++;
-    events.moo.nqSignal === "bullish" ? bullish++ : events.moo.nqSignal === "bearish" ? bearish++ : null;
+    total++; events.moo.nqSignal === "bullish" ? bullish++ : events.moo.nqSignal === "bearish" ? bearish++ : null;
   }
   if (market === "nasdaq" && events.moo?.spSignal && events.moo.spSignal !== "unknown") {
-    total++;
-    events.moo.spSignal === "bullish" ? bullish++ : events.moo.spSignal === "bearish" ? bearish++ : null;
+    total++; events.moo.spSignal === "bullish" ? bullish++ : events.moo.spSignal === "bearish" ? bearish++ : null;
   }
-  if (market === "oil" && events.eia) {
-    total++;
-    events.eia.signal === "bullish" ? bullish++ : bearish++;
+  // EIA nur wenn heute
+  if (market === "oil" && events.eia?.active) {
+    total++; events.eia.signal === "bullish" ? bullish++ : bearish++;
   }
 
   const direction = bullish > bearish ? "bullish" : bearish > bullish ? "bearish" : "neutral";
